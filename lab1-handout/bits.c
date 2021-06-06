@@ -2,7 +2,7 @@
  * CS:APP Data Lab 
  * 
  * <Please put your name and userid here>
- * 
+ * ZouYa U201915035
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
  *
@@ -171,7 +171,7 @@ NOTES:
  *   Rating: 1
  */
 int lsbZero(int x) {
-  return 2;
+  return (x>>1)<<1;
 }
 /* 
  * byteNot - bit-inversion to byte n from word x  
@@ -182,7 +182,7 @@ int lsbZero(int x) {
  *   Rating: 2
  */
 int byteNot(int x, int n) {
-  return 2;
+  return x^(0xff<<(n<<3));
 }
 /* 
  *   byteXor - compare the nth byte of x and y, if it is same, return 0, if not, return 1
@@ -195,7 +195,7 @@ int byteNot(int x, int n) {
  *   Rating: 2 
  */
 int byteXor(int x, int y, int n) {
-  return 2;
+  return !!(((x >> (n << 3)) & 0xff) ^ ((y >> (n << 3)) & 0xff));
 }
 /* 
  *   logicalAnd - x && y
@@ -204,7 +204,7 @@ int byteXor(int x, int y, int n) {
  *   Rating: 3 
  */
 int logicalAnd(int x, int y) {
-  return 2;
+  return (!!x)&(!!y);
 }
 /* 
  *   logicalOr - x || y
@@ -213,7 +213,7 @@ int logicalAnd(int x, int y) {
  *   Rating: 3 
  */
 int logicalOr(int x, int y) {
-  return 2;
+  return (!!x)|(!!y);
 }
 /* 
  * rotateLeft - Rotate x to the left by n
@@ -224,7 +224,7 @@ int logicalOr(int x, int y) {
  *   Rating: 3 
  */
 int rotateLeft(int x, int n) {
-  return 2;
+  return ((x>>(32+(~n+1)))&~((~(0x0))<<n))|(x<<n);
 }
 /*
  * parityCheck - returns 1 if x contains an odd number of 1's
@@ -234,7 +234,12 @@ int rotateLeft(int x, int n) {
  *   Rating: 4
  */
 int parityCheck(int x) {
-  return 2;
+  x ^= x >> 16;
+  x ^= x >> 8;
+  x ^= x >> 4;
+  x ^= x >> 2;
+  x ^= x >> 1;
+  return x&1;
 }
 /*
  * mul2OK - Determine if can compute 2*x without overflow
@@ -246,7 +251,8 @@ int parityCheck(int x) {
  *   Rating: 2
  */
 int mul2OK(int x) {
-  return 2;
+  int m = ((x >> 31 ) & 1) ^ ((x >> 30) & 1);
+  return m ^ 1;
 }
 /*
  * mult3div2 - multiplies by 3/2 rounding toward 0,
@@ -260,7 +266,10 @@ int mul2OK(int x) {
  *   Rating: 2
  */
 int mult3div2(int x) {
-  return 2;
+  int y=x,z;
+  z=y=y+(y<<1);
+  z=z>>31;
+  return ((~z)&(y>>1))+(z&((y>>1)+(y&1)));
 }
 /* 
  * subOK - Determine if can compute x-y without overflow
@@ -271,7 +280,7 @@ int mult3div2(int x) {
  *   Rating: 3
  */
 int subOK(int x, int y) {
-  return 2;
+  return !((((x >> 31) & 1) ^ ((y >> 31) & 1)) & (((x >> 31) & 1) ^ (((x + ~y + 1) >> 31) & 1)));
 }
 /* 
  * absVal - absolute value of x
@@ -282,7 +291,7 @@ int subOK(int x, int y) {
  *   Rating: 4
  */
 int absVal(int x) {
-  return 2;
+  return ((~(x >> 31)) & x) + ((x >> 31) & (~x + 1));
 }
 /* 
  * float_abs - Return bit-level equivalent of absolute value of f for
@@ -296,7 +305,11 @@ int absVal(int x) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  return 2;
+  int x=uf&(~(1<<31));
+  if(x>0x7f800000)
+    	return uf;
+  else 
+	return x;
 }
 /* 
  * float_f2i - Return bit-level equivalent of expression (int) f
@@ -311,5 +324,20 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  return 2;
+  int num = 0x80000000;
+  int x = (uf & 0x007fffff) ^ 0x00800000;
+  int order;
+  order = (uf&0x7f800000) >> 23;
+  if (order > 158)
+    	return num;
+  if (order < 127)
+	return 0;
+  if (((uf >> 31) & 1) == 1){
+  if(order > 150)
+      	return ~(x << (order - 150)) + 1;
+	return ~(x >> (150 - order)) + 1;
+  }else{
+        if(order > 150) return x << (order - 150);
+	return x >> (150 - order);
+  }
 }
